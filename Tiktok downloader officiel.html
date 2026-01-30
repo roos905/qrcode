@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BeTok - Téléchargeur TikTok</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --tiktok-red: #FE2C55;
+            --tiktok-cyan: #25F4EE;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+        
+        body.dark {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        
+        body.light {
+            background-color: #f5f5f5;
+            color: #000000;
+        }
+        
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+        
+        body.dark .header {
+            background-color: #000000;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        body.light .header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        
+        .logo i {
+            color: var(--tiktok-red);
+            margin-right: 6px;
+        }
+        
+        .logo .be {
+            color: inherit;
+        }
+        
+        .logo .tok {
+            color: var(--tiktok-red);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background-color 0.2s;
+        }
+        
+        body.dark .icon-btn {
+            color: #ffffff;
+        }
+        
+        body.light .icon-btn {
+            color: #000000;
+        }
+        
+        body.dark .icon-btn:hover {
+            background-color: #1a1a1a;
+        }
+        
+        body.light .icon-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Tab Layout */
+        .tab-layout {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            height: 48px;
+            display: flex;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+        
+        body.dark .tab-layout {
+            background-color: #000000;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        body.light .tab-layout {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .tab-item {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        body.dark .tab-item {
+            color: #666;
+        }
+        
+        body.light .tab-item {
+            color: #999;
+        }
+        
+        .tab-item.active {
+            color: var(--tiktok-red) !important;
+        }
+        
+        .tab-item.active i {
+            color: var(--tiktok-red) !important;
+        }
+        
+        .tab-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background-color: var(--tiktok-red);
+            border-radius: 3px 3px 0 0;
+            transition: width 0.3s;
+        }
+        
+        .tab-item.active::after {
+            width: 60%;
+        }
+        
+        .tab-item i {
+            font-size: 16px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 120px 16px 30px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Download Section */
+        .download-section {
+            padding-top: 20px;
+        }
+        
+        .section-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            font-size: 15px;
+            transition: all 0.3s;
+            outline: none;
+        }
+        
+        body.dark .url-input {
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        
+        body.light .url-input {
+            background-color: #ffffff;
+            color: #000;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .url-input:focus {
+            border-color: var(--tiktok-red);
+        }
+        
+        .url-input::placeholder {
+            opacity: 0.5;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--tiktok-red);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Loader */
+        .loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 0;
+        }
+        
+        .loader-container.show {
+            display: flex;
+        }
+        
+        .loader {
+            width: 45px;
+            height: 45px;
+            border: 4px solid #333;
+            border-top-color: var(--tiktok-red);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        body.light .loader {
+            border-color: #ddd;
+            border-top-color: var(--tiktok-red);
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loader-text {
+            margin-top: 16px;
+            opacity: 0.6;
+            font-size: 14px;
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .progress-container.show {
+            display: block;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        body.dark .progress-bar {
+            background-color: #333;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--tiktok-red);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+        
+        /* Result Card */
+        .result-card {
+            display: none;
+            margin-top: 24px;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: background-color 0.3s;
+        }
+        
+        .result-card.show {
+            display: block;
+        }
+        
+        body.dark .result-card {
+            background-color: #1a1a1a;
+        }
+        
+        body.light .result-card {
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .video-thumbnail {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+        }
+        
+        .video-info {
+            padding: 16px;
+        }
+        
+        .video-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 14px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .author-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .author-details {
+            flex: 1;
+        }
+        
+        .author-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .author-id {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+        
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+            padding: 12px;
+            border-radius: 10px;
+        }
+        
+        body.dark .stats-row {
+            background-color: #0a0a0a;
+        }
+        
+        body.light .stats-row {
+            background-color: #f5f5f5;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        
+        .stat-item i {
+            font-size: 14px;
+        }
+        
+        .stat-item .fa-heart {
+            color: var(--tiktok-red);
+        }
+        
+        .stat-item .fa-comment {
+            color: var(--tiktok-cyan);
+        }
+        
+        .stat-item .fa-play {
+            color: #999;
+        }
+        
+        .download-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-download {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-download:active {
+            opacity: 0.8;
+        }
+        
+        .btn-download.no-wm {
+            background-color: var(--tiktok-red);
+            color: white;
+        }
+        
+        .btn-download.wm {
+            background-color: var(--tiktok-cyan);
+            color: black;
+        }
+        
+        .btn-download.audio {
+            background-color: #333;
+            color: white;
+        }
+        
+        body.light .btn-download.audio {
+            background-color: #e0e0e0;
+            color: #000;
+        }
+        
+        /* Error Message */
+        .error-message {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .error-message i {
+            font-size: 50px;
+            color: var(--tiktok-red);
+            margin-bottom: 16px;
+        }
+        
+        .error-message p {
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        /* History Section */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-top: 20px;
+        }
+        
+        .history-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .btn-clear {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: none;
+            background-color: var(--tiktok-red);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .history-search {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: none;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        body.dark .history-search {
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        
+        body.light .history-search {
+            background-color: #f5f5f5;
+            color: #000;
+        }
+        
+        .history-search::placeholder {
+            opacity: 0.5;
+        }
+        
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            transition: background-color 0.3s;
+        }
+        
+        body.dark .history-item {
+            background-color: #1a1a1a;
+        }
+        
+        body.light .history-item {
+            background-color: #ffffff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        
+        .history-thumb {
+            width: 55px;
+            height: 75px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .history-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .history-info h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .history-info p {
+            font-size: 12px;
+            opacity: 0.5;
+        }
+        
+        .history-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .history-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+        
+        .history-btn:active {
+            opacity: 0.7;
+        }
+        
+        .history-btn.play {
+            background-color: var(--tiktok-cyan);
+            color: black;
+        }
+        
+        .history-btn.download {
+            background-color: var(--tiktok-red);
+            color: white;
+        }
+        
+        .history-btn.delete {
+            background-color: #333;
+            color: #fff;
+        }
+        
+        body.light .history-btn.delete {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state i {
+            font-size: 60px;
+            opacity: 0.15;
+            margin-bottom: 16px;
+        }
+        
+        .empty-state p {
+            opacity: 0.5;
+            font-size: 14px;
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            padding-top: 20px;
+        }
+        
+        .stats-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .stat-card {
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        
+        .stat-card.red {
+            background-color: var(--tiktok-red);
+            color: white;
+        }
+        
+        .stat-card i {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .stat-number {
+            font-size: 42px;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+        
+        .btn-reset {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        body.dark .btn-reset {
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        
+        body.light .btn-reset {
+            background-color: #ffffff;
+            color: #000;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal {
+            width: 100%;
+            max-width: 340px;
+            border-radius: 20px;
+            overflow: hidden;
+            animation: modalIn 0.3s ease;
+        }
+        
+        body.dark .modal {
+            background-color: #1a1a1a;
+        }
+        
+        body.light .modal {
+            background-color: #ffffff;
+        }
+        
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        body.light .modal-header {
+            border-bottom-color: #e0e0e0;
+        }
+        
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        body.dark .modal-close {
+            color: #fff;
+        }
+        
+        body.light .modal-close {
+            color: #000;
+        }
+        
+        .modal-body {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .modal-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        
+        .modal-logo i {
+            color: var(--tiktok-red);
+            margin-right: 6px;
+        }
+        
+        .modal-logo .tok {
+            color: var(--tiktok-red);
+        }
+        
+        .modal-version {
+            font-size: 12px;
+            opacity: 0.5;
+            margin-bottom: 20px;
+        }
+        
+        .modal-desc {
+            font-size: 13px;
+            line-height: 1.7;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        
+        .privacy-note {
+            font-size: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        body.dark .privacy-note {
+            background-color: #0a0a0a;
+            color: var(--tiktok-cyan);
+        }
+        
+        body.light .privacy-note {
+            background-color: #f0f0f0;
+            color: #00a896;
+        }
+        
+        .developer-box {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        body.dark .developer-box {
+            background-color: #0a0a0a;
+        }
+        
+        body.light .developer-box {
+            background-color: #f5f5f5;
+        }
+        
+        .developer-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 15px;
+        }
+        
+        .developer-row .label {
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .developer-row .label i {
+            color: var(--tiktok-red);
+        }
+        
+        .developer-row .dev-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--tiktok-red);
+        }
+        
+        .tech-icons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 22px;
+        }
+        
+        .tech-icons .fa-html5 {
+            color: #E34F26;
+        }
+        
+        .tech-icons .fa-css3-alt {
+            color: #1572B6;
+        }
+        
+        .tech-icons .fa-js {
+            color: #F7DF1E;
+        }
+        
+        /* Video Modal */
+        .video-modal-content {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+        }
+        
+        .video-close-btn {
+            position: absolute;
+            top: -50px;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .video-close-btn:hover {
+            background-color: var(--tiktok-red);
+        }
+        
+        .video-modal-content video {
+            width: 100%;
+            max-height: 75vh;
+            border-radius: 16px;
+            background: #000;
+        }
+        
+        /* Download Progress */
+        .download-progress {
+            display: none;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .download-progress.show {
+            display: block;
+        }
+        
+        .download-progress p {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 300;
+            max-width: 80%;
+            text-align: center;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toast.success {
+            background-color: #4CAF50;
+        }
+        
+        .toast.error {
+            background-color: var(--tiktok-red);
+        }
+    </style>
+</head>
+<body class="dark">
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <i class="fa-brands fa-tiktok"></i>
+            <span class="be">Be</span><span class="tok">Tok</span>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" id="themeBtn">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <button class="icon-btn" id="infoBtn">
+                <i class="fa-solid fa-circle-info"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Tab Layout -->
+    <nav class="tab-layout">
+        <button class="tab-item active" data-tab="downloadTab">
+            <i class="fa-solid fa-download"></i>
+            <span>Télécharger</span>
+        </button>
+        <button class="tab-item" data-tab="historyTab">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>Historique</span>
+        </button>
+        <button class="tab-item" data-tab="statsTab">
+            <i class="fa-solid fa-chart-simple"></i>
+            <span>Stats</span>
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Download Tab -->
+        <section class="tab-content active" id="downloadTab">
+            <div class="download-section">
+                <p class="section-label">Collez le lien TikTok</p>
+                
+                <div class="input-group">
+                    <input type="text" class="url-input" id="urlInput" placeholder="https://www.tiktok.com/@user/video/...">
+                </div>
+                
+                <button class="btn-primary" id="analyzeBtn">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Analyser la vidéo
+                </button>
+                
+                <div class="loader-container" id="loader">
+                    <div class="loader"></div>
+                    <p class="loader-text">Analyse en cours...</p>
+                </div>
+                
+                <div class="error-message" id="errorMsg">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <p id="errorText">Une erreur s'est produite</p>
+                </div>
+                
+                <div class="result-card" id="resultCard">
+                    <img class="video-thumbnail" id="videoThumbnail" src="" alt="Thumbnail">
+                    <div class="video-info">
+                        <p class="video-title" id="videoTitle"></p>
+                        <div class="author-row">
+                            <img class="author-avatar" id="authorAvatar" src="" alt="Avatar">
+                            <div class="author-details">
+                                <p class="author-name" id="authorName"></p>
+                                <p class="author-id" id="authorId"></p>
+                            </div>
+                        </div>
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <i class="fa-solid fa-heart"></i>
+                                <span id="likes">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fa-solid fa-comment"></i>
+                                <span id="comments">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fa-solid fa-play"></i>
+                                <span id="plays">0</span>
+                            </div>
+                        </div>
+                        <div class="download-options">
+                            <button class="btn-download no-wm" id="downloadNoWM">
+                                <i class="fa-solid fa-download"></i>
+                                Télécharger sans filigrane
+                            </button>
+                            <button class="btn-download wm" id="downloadWM">
+                                <i class="fa-solid fa-download"></i>
+                                Télécharger avec filigrane
+                            </button>
+                            <button class="btn-download audio" id="downloadAudio">
+                                <i class="fa-solid fa-music"></i>
+                                Télécharger l'audio (MP3)
+                            </button>
+                        </div>
+                        <div class="progress-container" id="progressContainer">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <p class="progress-text" id="progressText">0%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- History Tab -->
+        <section class="tab-content" id="historyTab">
+            <div class="history-header">
+                <h2 class="history-title">Historique</h2>
+                <button class="btn-clear" id="clearAllBtn">
+                    <i class="fa-solid fa-trash"></i>
+                    Tout effacer
+                </button>
+            </div>
+            <input type="text" class="history-search" id="historySearch" placeholder="Rechercher par titre ou auteur...">
+            
+            <div class="history-list" id="historyList"></div>
+            
+            <div class="empty-state" id="emptyHistory">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <p>Aucun historique pour le moment</p>
+            </div>
+        </section>
+
+        <!-- Stats Tab -->
+        <section class="tab-content" id="statsTab">
+            <div class="stats-section">
+                <div class="stats-cards">
+                    <div class="stat-card red">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <p class="stat-number" id="searchCount">0</p>
+                        <p class="stat-label">Vidéos recherchées</p>
+                    </div>
+                </div>
+                
+                <button class="btn-reset" id="resetStatsBtn">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Réinitialiser les statistiques
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Info Modal -->
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>À propos</h3>
+                <button class="modal-close" id="closeInfoModal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-logo">
+                    <i class="fa-brands fa-tiktok"></i>
+                    <span>Be</span><span class="tok">Tok</span>
+                </div>
+                <p class="modal-version">Version 1.0.0</p>
+                <p class="modal-desc">
+                    Application gratuite pour télécharger des vidéos TikTok avec ou sans filigrane en haute qualité.
+                </p>
+                <div class="privacy-note">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Nous ne collectons aucune donnée utilisateur</span>
+                </div>
+                <div class="developer-box">
+                    <div class="developer-row">
+                        <span class="label"><i class="fa-solid fa-code"></i> Développeur :</span>
+                        <span class="dev-name">Rooslove</span>
+                    </div>
+                </div>
+                <div class="tech-icons">
+                    <i class="fa-brands fa-html5"></i>
+                    <i class="fa-brands fa-css3-alt"></i>
+                    <i class="fa-brands fa-js"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div class="modal-overlay" id="videoModal">
+        <div class="video-modal-content">
+            <button class="video-close-btn" onclick="closeVideo()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <video id="videoPlayer" controls playsinline></video>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // State
+        let theme = localStorage.getItem('betok_theme') || 'dark';
+        let history = JSON.parse(localStorage.getItem('betok_history')) || [];
+        let stats = JSON.parse(localStorage.getItem('betok_stats')) || { searches: 0 };
+        let currentVideo = null;
+
+        // Elements
+        const body = document.body;
+        const themeBtn = document.getElementById('themeBtn');
+        const infoBtn = document.getElementById('infoBtn');
+        const infoModal = document.getElementById('infoModal');
+        const closeInfoModal = document.getElementById('closeInfoModal');
+        const videoModal = document.getElementById('videoModal');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const urlInput = document.getElementById('urlInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loader = document.getElementById('loader');
+        const errorMsg = document.getElementById('errorMsg');
+        const resultCard = document.getElementById('resultCard');
+        const historyList = document.getElementById('historyList');
+        const emptyHistory = document.getElementById('emptyHistory');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const resetStatsBtn = document.getElementById('resetStatsBtn');
+        const historySearch = document.getElementById('historySearch');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const toast = document.getElementById('toast');
+
+        // Init
+        function init() {
+            applyTheme(theme);
+            updateStats();
+            renderHistory();
+            setupListeners();
+            registerServiceWorker();
+        }
+
+        // Theme
+        function applyTheme(t) {
+            body.className = t;
+            themeBtn.innerHTML = t === 'dark' 
+                ? '<i class="fa-solid fa-moon"></i>' 
+                : '<i class="fa-solid fa-sun"></i>';
+            localStorage.setItem('betok_theme', t);
+        }
+
+        function toggleTheme() {
+            theme = theme === 'dark' ? 'light' : 'dark';
+            applyTheme(theme);
+        }
+
+        // Tabs
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+        }
+
+        // API
+        async function analyzeUrl() {
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showError('Veuillez entrer un lien TikTok');
+                return;
+            }
+            
+            if (!url.includes('tiktok.com')) {
+                showError('Veuillez entrer un lien TikTok valide');
+                return;
+            }
+            
+            hideAll();
+            loader.classList.add('show');
+            analyzeBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
+                const data = await response.json();
+                
+                if (data.code === 0 && data.data) {
+                    currentVideo = data.data;
+                    showResult(data.data);
+                    addToHistory(data.data);
+                    stats.searches++;
+                    saveStats();
+                    updateStats();
+                    showToast('Vidéo analysée avec succès !', 'success');
+                } else {
+                    showError('Impossible de récupérer la vidéo');
+                }
+            } catch (error) {
+                showError('Erreur de connexion. Vérifiez votre internet.');
+            }
+            
+            loader.classList.remove('show');
+            analyzeBtn.disabled = false;
+        }
+
+        function hideAll() {
+            loader.classList.remove('show');
+            errorMsg.classList.remove('show');
+            resultCard.classList.remove('show');
+            progressContainer.classList.remove('show');
+        }
+
+        function showError(msg) {
+            hideAll();
+            document.getElementById('errorText').textContent = msg;
+            errorMsg.classList.add('show');
+            showToast(msg, 'error');
+        }
+
+        function showResult(data) {
+            document.getElementById('videoThumbnail').src = data.origin_cover || data.cover;
+            document.getElementById('videoTitle').textContent = data.title || 'Vidéo sans titre';
+            document.getElementById('authorAvatar').src = data.author.avatar;
+            document.getElementById('authorName').textContent = data.author.nickname;
+            document.getElementById('authorId').textContent = '@' + data.author.unique_id;
+            document.getElementById('likes').textContent = formatNum(data.digg_count);
+            document.getElementById('comments').textContent = formatNum(data.comment_count);
+            document.getElementById('plays').textContent = formatNum(data.play_count);
+            
+            resultCard.classList.add('show');
+        }
+
+        // Download functions - using XMLHttpRequest for progress
+        function downloadBlob(url, filename) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'blob';
+                xhr.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percent = (event.loaded / event.total) * 100;
+                        updateProgress(percent);
+                    }
+                };
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        const blob = xhr.response;
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(link.href);
+                        updateProgress(100);
+                        showToast('Téléchargement terminé !', 'success');
+                        resolve();
+                    } else {
+                        reject(new Error('Erreur réseau'));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Erreur réseau'));
+                xhr.send();
+            });
+        }
+
+        async function downloadNoWM() {
+            if (currentVideo) {
+                const url = currentVideo.hdplay || currentVideo.play;
+                if (url) {
+                    const fullUrl = url.startsWith('http') 
+                        ? url 
+                        : 'https://www.tikwm.com' + url;
+                    progressContainer.classList.add('show');
+                    updateProgress(0);
+                    try {
+                        await downloadBlob(fullUrl, `betok_${currentVideo.id}_nowm.mp4`);
+                    } catch (error) {
+                        showError('Échec du téléchargement. Vérifiez votre connexion.');
+                    }
+                    progressContainer.classList.remove('show');
+                }
+            }
+        }
+
+        async function downloadWM() {
+            if (currentVideo && currentVideo.wmplay) {
+                const url = currentVideo.wmplay.startsWith('http') 
+                    ? currentVideo.wmplay 
+                    : 'https://www.tikwm.com' + currentVideo.wmplay;
+                progressContainer.classList.add('show');
+                updateProgress(0);
+                try {
+                    await downloadBlob(url, `betok_${currentVideo.id}_wm.mp4`);
+                } catch (error) {
+                    showError('Échec du téléchargement. Vérifiez votre connexion.');
+                }
+                progressContainer.classList.remove('show');
+            }
+        }
+
+        async function downloadAudio() {
+            if (currentVideo && currentVideo.music) {
+                const url = currentVideo.music.startsWith('http') 
+                    ? currentVideo.music 
+                    : 'https://www.tikwm.com' + currentVideo.music;
+                progressContainer.classList.add('show');
+                updateProgress(0);
+                try {
+                    await downloadBlob(url, `betok_${currentVideo.id}_audio.mp3`);
+                } catch (error) {
+                    showError('Échec du téléchargement. Vérifiez votre connexion.');
+                }
+                progressContainer.classList.remove('show');
+            }
+        }
+
+        function updateProgress(percent) {
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = `${Math.round(percent)}%`;
+        }
+
+        // History
+        function addToHistory(video) {
+            if (history.find(v => v.id === video.id)) return;
+            
+            history.unshift({
+                id: video.id,
+                title: video.title || 'Vidéo sans titre',
+                cover: video.cover || video.origin_cover,
+                author: video.author.unique_id,
+                play: video.hdplay || video.play,
+                date: new Date().toISOString()
+            });
+            
+            if (history.length > 50) {
+                history = history.slice(0, 50);
+            }
+            
+            saveHistory();
+            renderHistory();
+            showToast('Ajouté à l\'historique', 'success');
+        }
+
+        function renderHistory(filter = '') {
+            let filteredHistory = history;
+            if (filter) {
+                const lowerFilter = filter.toLowerCase();
+                filteredHistory = history.filter(v => 
+                    v.title.toLowerCase().includes(lowerFilter) || 
+                    v.author.toLowerCase().includes(lowerFilter)
+                );
+            }
+            
+            if (filteredHistory.length === 0) {
+                historyList.innerHTML = '';
+                emptyHistory.style.display = 'block';
+                clearAllBtn.style.display = 'none';
+                return;
+            }
+            
+            emptyHistory.style.display = 'none';
+            clearAllBtn.style.display = 'flex';
+            
+            historyList.innerHTML = filteredHistory.map((v, i) => `
+                <div class="history-item">
+                    <img class="history-thumb" src="${v.cover}" alt="Thumbnail" onerror="this.src='https://via.placeholder.com/55x75?text=TikTok'">
+                    <div class="history-info">
+                        <h4>${escapeHtml(v.title)}</h4>
+                        <p>@${escapeHtml(v.author)}</p>
+                    </div>
+                    <div class="history-actions">
+                        <button class="history-btn play" onclick="playVideo('${v.play}')">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button class="history-btn download" onclick="redownload('\( {v.play}', ' \){v.id}')">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                        <button class="history-btn delete" onclick="deleteHistory(${history.indexOf(v)})">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function redownload(playUrl, id) {
+            const url = playUrl.startsWith('http') 
+                ? playUrl 
+                : 'https://www.tikwm.com' + playUrl;
+            progressContainer.classList.add('show');
+            updateProgress(0);
+            try {
+                await downloadBlob(url, `betok_${id}_nowm.mp4`);
+            } catch (error) {
+                showError('Échec du téléchargement. Vérifiez votre connexion.');
+            }
+            progressContainer.classList.remove('show');
+        }
+
+        function deleteHistory(index) {
+            history.splice(index, 1);
+            saveHistory();
+            renderHistory(historySearch.value);
+            showToast('Élément supprimé', 'success');
+        }
+
+        function clearHistory() {
+            if (confirm('Effacer tout l\'historique ?')) {
+                history = [];
+                saveHistory();
+                renderHistory();
+                showToast('Historique effacé', 'success');
+            }
+        }
+
+        function saveHistory() {
+            localStorage.setItem('betok_history', JSON.stringify(history));
+        }
+
+        // Stats
+        function updateStats() {
+            document.getElementById('searchCount').textContent = stats.searches;
+        }
+
+        function saveStats() {
+            localStorage.setItem('betok_stats', JSON.stringify(stats));
+        }
+
+        function resetStats() {
+            if (confirm('Réinitialiser les statistiques ?')) {
+                stats = { searches: 0 };
+                saveStats();
+                updateStats();
+                showToast('Statistiques réinitialisées', 'success');
+            }
+        }
+
+        // Video Player
+        function playVideo(url) {
+            const videoUrl = url.startsWith('http') 
+                ? url 
+                : 'https://www.tikwm.com' + url;
+            videoPlayer.src = videoUrl;
+            videoModal.classList.add('show');
+            videoPlayer.play().catch(e => {
+                console.log('Autoplay blocked, user can click play');
+            });
+        }
+
+        function closeVideo() {
+            videoModal.classList.remove('show');
+            videoPlayer.pause();
+            videoPlayer.src = '';
+        }
+
+        // Utils
+        function formatNum(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+            return n.toString();
+        }
+
+        function showToast(message, type = 'success') {
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Service Worker for basic offline
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('Service Worker registered'))
+                    .catch(err => console.error('Service Worker registration failed', err));
+            }
+        }
+
+        // Listeners
+        function setupListeners() {
+            themeBtn.addEventListener('click', toggleTheme);
+            
+            infoBtn.addEventListener('click', () => infoModal.classList.add('show'));
+            closeInfoModal.addEventListener('click', () => infoModal.classList.remove('show'));
+            infoModal.addEventListener('click', e => {
+                if (e.target === infoModal) infoModal.classList.remove('show');
+            });
+            
+            videoModal.addEventListener('click', e => {
+                if (e.target === videoModal) closeVideo();
+            });
+            
+            document.querySelectorAll('.tab-item').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+            
+            analyzeBtn.addEventListener('click', analyzeUrl);
+            urlInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') analyzeUrl();
+            });
+            
+            document.getElementById('downloadNoWM').addEventListener('click', downloadNoWM);
+            document.getElementById('downloadWM').addEventListener('click', downloadWM);
+            document.getElementById('downloadAudio').addEventListener('click', downloadAudio);
+            
+            clearAllBtn.addEventListener('click', clearHistory);
+            resetStatsBtn.addEventListener('click', resetStats);
+            
+            historySearch.addEventListener('input', (e) => renderHistory(e.target.value));
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
